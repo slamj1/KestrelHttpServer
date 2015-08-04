@@ -8,6 +8,8 @@ namespace Microsoft.AspNet.Server.Kestrel.Networking
 {
     public class UvTcpHandle : UvStreamHandle
     {
+        public static bool NoDelay;
+
         public void Init(UvLoopHandle loop)
         {
             CreateMemory(
@@ -16,6 +18,7 @@ namespace Microsoft.AspNet.Server.Kestrel.Networking
                 loop.Libuv.handle_size(Libuv.HandleType.TCP));
 
             _uv.tcp_init(loop, this);
+            _uv.tcp_nodelay(this, NoDelay);
         }
 
         public void Init(UvLoopHandle loop, Action<Action<IntPtr>, IntPtr> queueCloseHandle)
@@ -26,6 +29,7 @@ namespace Microsoft.AspNet.Server.Kestrel.Networking
                 loop.Libuv.handle_size(Libuv.HandleType.TCP), queueCloseHandle);
 
             _uv.tcp_init(loop, this);
+            _uv.tcp_nodelay(this, NoDelay);
         }
 
         public void Bind(IPEndPoint endpoint)

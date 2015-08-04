@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Hosting.Server;
+using Microsoft.AspNet.Server.Kestrel.Networking;
 using Microsoft.Framework.Configuration;
 
 namespace Kestrel
@@ -43,5 +44,17 @@ namespace Kestrel
         public IList<ServerAddress> Addresses { get; private set; }
 
         public int ThreadCount { get; set; }
+
+        bool IKestrelServerInformation.NoDelay
+        {
+            get
+            {
+                return UvTcpHandle.NoDelay;
+            }
+            set
+            {
+                UvTcpHandle.NoDelay = value;
+            }
+        }
     }
 }

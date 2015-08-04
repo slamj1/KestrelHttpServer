@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Kestrel;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 
@@ -11,6 +12,11 @@ namespace SampleApp
     {
         public void Configure(IApplicationBuilder app)
         {
+            var kestrelInfo = (IKestrelServerInformation)app.Server;
+
+            kestrelInfo.ThreadCount = Environment.ProcessorCount;
+            kestrelInfo.NoDelay = true;
+
             app.Run(async context =>
             {
                 Console.WriteLine("{0} {1}{2}{3}",
