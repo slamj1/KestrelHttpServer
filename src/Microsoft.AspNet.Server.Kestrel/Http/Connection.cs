@@ -30,7 +30,7 @@ namespace Microsoft.AspNet.Server.Kestrel.Http
             _connectionId = Interlocked.Increment(ref _lastConnectionId);
         }
 
-        public async void Start()
+        public void Start()
         {
             Log.ConnectionStart(_connectionId);
 
@@ -49,20 +49,28 @@ namespace Microsoft.AspNet.Server.Kestrel.Http
                     Connection = libuvStream,
                 };
 
-                await ConnectionFilter.OnConnection(connectionFilterContext);
-
-                SocketInput = new SocketInput(Memory);
-                SocketOutput = new StreamSocketOutput(connectionFilterContext.Connection);
-
-                _frame = new Frame(this);
-
-                var socketInputStream = new SocketInputStream(SocketInput, this);
-
-                connectionFilterContext.Connection.CopyToAsync(socketInputStream).ContinueWith(t =>
+                ConnectionFilter.OnConnection(connectionFilterContext).ContinueWith(t =>
                 {
                     if (t.Exception != null)
                     {
-                        Log.LogError("Connection.StartError", t.Exception);
+                        Log.LogError("ConnectionFilter.OnConnection Error", t.Exception);
+                    }
+                    else
+                    {
+                        SocketInput = new SocketInput(Memory);
+                        SocketOutput = new StreamSocketOutput(connectionFilterContext.Connection);
+
+                        _frame = new Frame(this);
+
+                        var socketInputStream = new SocketInputStream(SocketInput, this);
+
+                        connectionFilterContext.Connection.CopyToAsync(socketInputStream).ContinueWith(t2 =>
+                        {
+                            if (t2.Exception != null)
+                            {
+                                Log.LogError("Connection.CopyToAsync Error", t2.Exception);
+                            }
+                        });
                     }
                 });
             }

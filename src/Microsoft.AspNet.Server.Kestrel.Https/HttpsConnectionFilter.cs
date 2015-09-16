@@ -22,6 +22,7 @@ namespace Microsoft.AspNet.Server.Kestrel.Https
             var sslStream = new SslStream(new TracingStream(context.Connection));
 
             await sslStream.AuthenticateAsServerAsync(new X509Certificate2("testCert.cer"));
+
             context.Connection = sslStream;
             await _next.OnConnection(context);
         }
