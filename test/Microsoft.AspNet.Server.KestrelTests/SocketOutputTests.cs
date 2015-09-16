@@ -32,7 +32,7 @@ namespace Microsoft.AspNet.Server.KestrelTests
                 }
             };
 
-            using (var kestrelEngine = new KestrelEngine(mockLibuv, new ShutdownNotImplemented(), new TestLogger()))
+            using (var kestrelEngine = new KestrelEngine(mockLibuv, new TestServiceContext()))
             {
                 kestrelEngine.Start(count: 1);
 
@@ -77,7 +77,7 @@ namespace Microsoft.AspNet.Server.KestrelTests
                 }
             };
 
-            using (var kestrelEngine = new KestrelEngine(mockLibuv, new ShutdownNotImplemented(), new TestLogger()))
+            using (var kestrelEngine = new KestrelEngine(mockLibuv, new TestServiceContext()))
             {
                 kestrelEngine.Start(count: 1);
 

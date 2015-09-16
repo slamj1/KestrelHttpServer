@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Server.Kestrel;
 using Microsoft.AspNet.Server.Kestrel.Http;
+using Microsoft.AspNet.Server.KestrelTests.TestHelpers;
 using Microsoft.Dnx.Runtime;
 using Microsoft.Dnx.Runtime.Infrastructure;
 
@@ -45,7 +46,7 @@ namespace Microsoft.AspNet.Server.KestrelTests
 
         public void Create(Func<Frame, Task> app)
         {
-            _engine = new KestrelEngine(LibraryManager, new ShutdownNotImplemented(), new TestLogger());
+            _engine = new KestrelEngine(LibraryManager, new TestServiceContext());
             _engine.Start(1);
             _server = _engine.CreateServer(
                 "http",

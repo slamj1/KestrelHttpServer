@@ -3,20 +3,16 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Server.Kestrel.Filter;
-using Microsoft.AspNet.Server.Kestrel.Infrastructure;
 
 namespace Microsoft.AspNet.Server.Kestrel.Http
 {
-    public class ListenerContext
+    public class ListenerContext : ServiceContext
     {
         public ListenerContext() { }
 
         public ListenerContext(ServiceContext serviceContext)
+            : base(serviceContext)
         {
-            Memory = serviceContext.Memory;
-            Log = serviceContext.Log;
-            ConnectionFilter = serviceContext.ConnectionFilter;
         }
 
         public ListenerContext(ListenerContext listenerContext)
@@ -31,11 +27,5 @@ namespace Microsoft.AspNet.Server.Kestrel.Http
         public KestrelThread Thread { get; set; }
 
         public Func<Frame, Task> Application { get; set; }
-
-        public IMemoryPool Memory { get; set; }
-
-        public IKestrelTrace Log { get; }
-
-        public IConnectionFilter ConnectionFilter { get; set; }
     }
 }

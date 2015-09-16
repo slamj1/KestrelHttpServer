@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Server.Kestrel;
 using Microsoft.AspNet.Server.Kestrel.Http;
+using Microsoft.AspNet.Server.KestrelTests.TestHelpers;
 using Microsoft.Dnx.Runtime;
 using Microsoft.Dnx.Runtime.Infrastructure;
 using Xunit;
@@ -86,7 +87,7 @@ namespace Microsoft.AspNet.Server.KestrelTests
         [Fact]
         public void EngineCanStartAndStop()
         {
-            var engine = new KestrelEngine(LibraryManager, new ShutdownNotImplemented(), new TestLogger());
+            var engine = new KestrelEngine(LibraryManager, new TestServiceContext());
             engine.Start(1);
             engine.Dispose();
         }
@@ -94,7 +95,7 @@ namespace Microsoft.AspNet.Server.KestrelTests
         [Fact]
         public void ListenerCanCreateAndDispose()
         {
-            var engine = new KestrelEngine(LibraryManager, new ShutdownNotImplemented(), new TestLogger());
+            var engine = new KestrelEngine(LibraryManager, new TestServiceContext());
             engine.Start(1);
             var started = engine.CreateServer("http", "localhost", 54321, App);
             started.Dispose();
@@ -105,7 +106,7 @@ namespace Microsoft.AspNet.Server.KestrelTests
         [Fact]
         public void ConnectionCanReadAndWrite()
         {
-            var engine = new KestrelEngine(LibraryManager, new ShutdownNotImplemented(), new TestLogger());
+            var engine = new KestrelEngine(LibraryManager, new TestServiceContext());
             engine.Start(1);
             var started = engine.CreateServer("http", "localhost", 54321, App);
 

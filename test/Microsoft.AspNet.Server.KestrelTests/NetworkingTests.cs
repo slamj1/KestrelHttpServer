@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Server.Kestrel;
 using Microsoft.AspNet.Server.Kestrel.Infrastructure;
 using Microsoft.AspNet.Server.Kestrel.Networking;
+using Microsoft.AspNet.Server.KestrelTests.TestHelpers;
 using Microsoft.Dnx.Runtime;
 using Microsoft.Dnx.Runtime.Infrastructure;
 using Xunit;
@@ -24,7 +25,7 @@ namespace Microsoft.AspNet.Server.KestrelTests
         private readonly IKestrelTrace _logger = new KestrelTrace(new TestLogger());
         public NetworkingTests()
         {
-            var engine = new KestrelEngine(LibraryManager, new ShutdownNotImplemented(), new TestLogger());
+            var engine = new KestrelEngine(LibraryManager, new TestServiceContext());
             _uv = engine.Libuv;
         }
 

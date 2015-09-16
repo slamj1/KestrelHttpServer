@@ -10,7 +10,17 @@ namespace Microsoft.AspNet.Server.Kestrel
 {
     public class ServiceContext
     {
-        public IApplicationShutdown AppShutdown { get; set; }
+        public ServiceContext() { }
+
+        public ServiceContext(ServiceContext context)
+        {
+            AppShutdown = context.AppShutdown;
+            Memory = context.Memory;
+            Log = context.Log;
+            ConnectionFilter = context.ConnectionFilter;
+        }
+
+       public IApplicationShutdown AppShutdown { get; set; }
 
         public IMemoryPool Memory { get; set; }
 
