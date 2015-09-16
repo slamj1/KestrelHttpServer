@@ -5,7 +5,11 @@
         "Microsoft.Framework.Logging.Console": "1.0.0-*"
     },
     "frameworks": {
-        "dnx451": { },
+        "dnx451": {
+            "dependencies": {
+                "Microsoft.AspNet.Server.Kestrel.Https": "1.0.0-*"
+            }
+        },
         "dnxcore50": {
             "dependencies": {
                 "System.Console": "4.0.0-beta-*"

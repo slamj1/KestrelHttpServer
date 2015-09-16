@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Server.Kestrel
             try
             {
                 var information = (KestrelServerInformation)serverFeatures.Get<IKestrelServerInformation>();
-                var engine = new KestrelEngine(_libraryManager, _appShutdownService, _logger);
+                var engine = new KestrelEngine(_libraryManager, _appShutdownService, information.ConnectionFilter, _logger);
 
                 disposables.Push(engine);
 

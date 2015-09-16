@@ -3,20 +3,19 @@
 
 using System;
 using System.Threading;
+using Microsoft.AspNet.Server.Kestrel.Filter;
 using Microsoft.AspNet.Server.Kestrel.Infrastructure;
 using Microsoft.AspNet.Server.Kestrel.Networking;
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Server.Kestrel.Http
 {
-    public class Connection : ConnectionContext, IConnectionControl
+    public class Connection : ConnectionContext, IConnectionControl, IConsumeSocketInput
     {
-        private static readonly Action<UvStreamHandle, int, Exception, object> _readCallback = ReadCallback;
-        private static readonly Func<UvStreamHandle, int, object, Libuv.uv_buf_t> _allocCallback = AllocCallback;
-
         private static long _lastConnectionId;
 
         private readonly UvStreamHandle _socket;
+        private LibuvSocketInputReader _rawInputReader;
         private Frame _frame;
         private long _connectionId = 0;
 
@@ -31,61 +30,56 @@ namespace Microsoft.AspNet.Server.Kestrel.Http
             _connectionId = Interlocked.Increment(ref _lastConnectionId);
         }
 
-        public void Start()
+        public async void Start()
         {
             Log.ConnectionStart(_connectionId);
 
-            SocketInput = new SocketInput(Memory);
-            SocketOutput = new SocketOutput(Thread, _socket, _connectionId, Log);
-            _frame = new Frame(this);
-            _socket.ReadStart(_allocCallback, _readCallback, this);
-        }
+            var rawSocketInput = new SocketInput(Memory);
+            var rawSocketOutput = new SocketOutput(Thread, _socket, _connectionId, Log);
 
-        private static Libuv.uv_buf_t AllocCallback(UvStreamHandle handle, int suggestedSize, object state)
-        {
-            return ((Connection)state).OnAlloc(handle, suggestedSize);
-        }
-
-        private Libuv.uv_buf_t OnAlloc(UvStreamHandle handle, int suggestedSize)
-        {
-            return handle.Libuv.buf_init(
-                SocketInput.Pin(2048),
-                2048);
-        }
-
-        private static void ReadCallback(UvStreamHandle handle, int nread, Exception error, object state)
-        {
-            ((Connection)state).OnRead(handle, nread, error);
-        }
-
-        private void OnRead(UvStreamHandle handle, int status, Exception error)
-        {
-            SocketInput.Unpin(status);
-
-            var normalRead = error == null && status > 0;
-            var normalDone = status == 0 || status == Constants.ECONNRESET || status == Constants.EOF;
-            var errorDone = !(normalDone || normalRead);
-
-            if (normalRead)
+            if (ConnectionFilter != null)
             {
-                Log.ConnectionRead(_connectionId, status);
+                var libuvStream = new LibuvStream(rawSocketInput, rawSocketOutput, this);
+                _rawInputReader = new LibuvSocketInputReader(rawSocketInput, _socket, libuvStream, Log, _connectionId);
+                _rawInputReader.ReadStart();
+
+                var connectionFilterContext = new ConnectionFilterContext
+                {
+                    Address = null,
+                    Connection = libuvStream,
+                };
+
+                await ConnectionFilter.OnConnection(connectionFilterContext);
+
+                SocketInput = new SocketInput(Memory);
+                SocketOutput = new StreamSocketOutput(connectionFilterContext.Connection);
+
+                _frame = new Frame(this);
+
+                var socketInputStream = new SocketInputStream(SocketInput, this);
+
+                connectionFilterContext.Connection.CopyToAsync(socketInputStream).ContinueWith(t =>
+                {
+                    if (t.Exception != null)
+                    {
+                        Log.LogError("Connection.StartError", t.Exception);
+                    }
+                });
             }
-            else if (normalDone || errorDone)
+            else
             {
-                SocketInput.RemoteIntakeFin = true;
-                _socket.ReadStop();
+                _rawInputReader = new LibuvSocketInputReader(rawSocketInput, _socket, this, Log, _connectionId);
+                _rawInputReader.ReadStart();
 
-                if (errorDone && error != null)
-                {
-                    Log.LogError("Connection.OnRead", error);
-                }
-                else
-                {
-                    Log.ConnectionReadFin(_connectionId);
-                }
+                SocketInput = rawSocketInput;
+                SocketOutput = rawSocketOutput;
+
+                _frame = new Frame(this);
             }
+        }
 
-
+        public void Consume()
+        {
             try
             {
                 _frame.Consume();
@@ -106,7 +100,7 @@ namespace Microsoft.AspNet.Server.Kestrel.Http
         void IConnectionControl.Resume()
         {
             Log.ConnectionResume(_connectionId);
-            _socket.ReadStart(_allocCallback, _readCallback, this);
+            _rawInputReader.ReadStart();
         }
 
         void IConnectionControl.End(ProduceEndType endType)
