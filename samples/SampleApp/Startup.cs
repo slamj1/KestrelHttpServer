@@ -1,15 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Server.Kestrel;
-using Microsoft.AspNet.Server.Kestrel.Filter;
+using Microsoft.Framework.Logging;
+
 #if DNX451
 using Microsoft.AspNet.Server.Kestrel.Https;
 #endif
-using Microsoft.Framework.Logging;
 
 namespace SampleApp
 {
@@ -21,15 +22,14 @@ namespace SampleApp
 
             loggerFactory.AddConsole(LogLevel.Debug);
 
+#if DNX451
+            app.UseKestrelHttps(new X509Certificate("testCert.cer"));
+#endif
+
             var serverInfo = app.ServerFeatures.Get<IKestrelServerInformation>();
             if (serverInfo != null)
             {
                 //serverInfo.ThreadCount = 4;
-
-#if DNX451
-                serverInfo.ConnectionFilter = new HttpsConnectionFilter(new NoOpConnectionFilter());
-                //serverInfo.ConnectionFilter = new NoOpConnectionFilter();
-#endif
             }
 
             app.Run(context =>

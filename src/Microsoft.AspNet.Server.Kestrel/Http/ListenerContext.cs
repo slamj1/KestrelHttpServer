@@ -16,6 +16,7 @@ namespace Microsoft.AspNet.Server.Kestrel.Http
         }
 
         public ListenerContext(ListenerContext listenerContext)
+            : base(listenerContext)
         {
             Thread = listenerContext.Thread;
             Application = listenerContext.Application;

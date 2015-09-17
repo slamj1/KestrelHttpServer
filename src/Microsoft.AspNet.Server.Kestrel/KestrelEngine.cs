@@ -109,6 +109,9 @@ namespace Microsoft.AspNet.Server.Kestrel
                 host = host.Substring(Constants.UnixPipeHostPrefix.Length - 1);
             }
 
+            var listenerContext = new ServiceContext(_serviceContext);
+            listenerContext.ServerAddress = new ServerAddress(scheme, host, port);
+
             try
             {
                 var pipeName = (Libuv.IsWindows ? @"\\.\pipe\kestrel_" : "/tmp/kestrel_") + Guid.NewGuid().ToString("n");
@@ -121,16 +124,16 @@ namespace Microsoft.AspNet.Server.Kestrel
                     if (single)
                     {
                         var listener = usingPipes ? 
-                            (Listener) new PipeListener(_serviceContext) : 
-                            new TcpListener(_serviceContext);
+                            (Listener) new PipeListener(listenerContext) : 
+                            new TcpListener(listenerContext);
                         listeners.Add(listener);
                         listener.StartAsync(scheme, host, port, thread, application).Wait();
                     }
                     else if (first)
                     {
                         var listener = usingPipes
-                            ? (ListenerPrimary) new PipeListenerPrimary(_serviceContext)
-                            : new TcpListenerPrimary(_serviceContext);
+                            ? (ListenerPrimary) new PipeListenerPrimary(listenerContext)
+                            : new TcpListenerPrimary(listenerContext);
 
                         listeners.Add(listener);
                         listener.StartAsync(pipeName, scheme, host, port, thread, application).Wait();
@@ -138,8 +141,8 @@ namespace Microsoft.AspNet.Server.Kestrel
                     else
                     {
                         var listener = usingPipes
-                            ? (ListenerSecondary) new PipeListenerSecondary(_serviceContext)
-                            : new TcpListenerSecondary(_serviceContext);
+                            ? (ListenerSecondary) new PipeListenerSecondary(listenerContext)
+                            : new TcpListenerSecondary(listenerContext);
                         listeners.Add(listener);
                         listener.StartAsync(pipeName, thread, application).Wait();
                     }

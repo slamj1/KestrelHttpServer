@@ -45,7 +45,7 @@ namespace Microsoft.AspNet.Server.Kestrel.Http
 
                 var connectionFilterContext = new ConnectionFilterContext
                 {
-                    Address = null,
+                    Address = ServerAddress,
                     Connection = libuvStream,
                 };
 

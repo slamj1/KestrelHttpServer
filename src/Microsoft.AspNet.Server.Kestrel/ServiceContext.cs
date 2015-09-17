@@ -18,6 +18,7 @@ namespace Microsoft.AspNet.Server.Kestrel
             Memory = context.Memory;
             Log = context.Log;
             ConnectionFilter = context.ConnectionFilter;
+            ServerAddress = context.ServerAddress;
         }
 
        public IApplicationShutdown AppShutdown { get; set; }
@@ -27,5 +28,7 @@ namespace Microsoft.AspNet.Server.Kestrel
         public IKestrelTrace Log { get; set; }
 
         public IConnectionFilter ConnectionFilter { get; set; }
+
+        public ServerAddress ServerAddress { get; set; }
     }
 }

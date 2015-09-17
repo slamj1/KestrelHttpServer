@@ -9,6 +9,17 @@ namespace Microsoft.AspNet.Server.Kestrel
 {
     public class ServerAddress
     {
+        private ServerAddress()
+        {
+        }
+
+        public ServerAddress(string scheme, string host, int port)
+        {
+            Scheme = scheme;
+            Host = host;
+            Port = port;
+        }
+
         public string Host { get; private set; }
         public string Path { get; private set; }
         public int Port { get; private set; }
